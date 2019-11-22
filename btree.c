@@ -24,6 +24,28 @@ int eh_maiuscula(int letra){
   return -1; //caso não seja alfabético
 }
 
+void qs_simultaneo(char *letras, int *freq, int esq, int dir){
+  int i, j, x, y;
+  i = esq;
+  j = dir;
+  x = letras[(esq + dir) / 2];
+  while (i <= j){
+    while (letras[i] < x && i < dir) i++;
+    while (letras[j] > x && j > esq) j--;
+    if (i <= j){
+      y = letras[i]; //realiza troca no array de letras
+      letras[i] = letras[j];
+      letras[j] = y;
+      y = freq[i]; //realiza troca no array de frequencias
+      freq[i] = freq[j];
+      freq[j] = y;
+      i++;
+      j--;
+    }
+  }
+  if (j > esq) qs_simultaneo(letras, freq, esq, j);
+  if (i < dir) qs_simultaneo(letras, freq, i, dir);
+}
 
 BTree *inicializa(){
   return NULL;
@@ -165,12 +187,12 @@ int main(){
   BTree *arvore = inicializa();
   char letras[8] = {'b', 'h', 'd', 'c', 'e', 'f', 'g', 'a'};
   int frequencias[8] = {1, 1, 1, 2, 3, 2, 1, 4};
-  int t = 2;
+  qs_simultaneo(letras, frequencias, 0, 7);
   int i;
+  int t = 2;
   for (i=0; i<8; i++){
     arvore = insere(arvore, letras[i], frequencias[i], t);
   }
-  imprime(arvore, 0);
   busca_subordinadas(arvore, 'a');
   return 1;
 }
