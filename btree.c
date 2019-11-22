@@ -1,306 +1,176 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-const int t = 2;
 
-typedef struct ArvB{
-  int nchaves, folha, *chave;
-  struct ArvB **filho;
-}TAB;
+typedef struct btree{
+  int nletras, folha, *letra, frequencia, vogal, maiuscula;
+  struct btree **filho;
+}BTree;
 
 
-TAB *Cria(int t){
-  TAB* novo = (TAB*)malloc(sizeof(TAB));
-  novo->nchaves = 0;
-  novo->chave =(int*)malloc(sizeof(int*)*((t*2)-1));
+int eh_vogal(int letra){
+  char vogais[] = {'a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U'};
+  int k;
+  for (k = 0; k < 10; k++)
+    if (letra == vogais[k]) return 1; //caso seja vogal
+  if ((letra >= 'a' && letra <= 'z') || (letra >= 'A' && letra <= 'Z')) return 0; //caso não seja vogal
+  return -1; //caso não seja alfabético
+}
+
+
+int eh_maiuscula(int letra){
+  if (letra >= 'A' && letra <= 'Z') return 1; //caso seja maiuscula
+  if (letra >= 'a' && letra <= 'z') return 0; //caso não seja maiuscula
+  return -1; //caso não seja alfabético
+}
+
+
+BTree *inicializa(){
+  return NULL;
+}
+
+
+BTree *cria(int t){
+  BTree* novo = (BTree*)malloc(sizeof(BTree));
+  novo->nletras = 0;
+  novo->letra =(int*)malloc(sizeof(int*)*((t*2)-1));
   novo->folha=1;
-  novo->filho = (TAB**)malloc(sizeof(TAB*)*t*2);
+  novo->vogal=-1;
+  novo->maiuscula=-1;
+  novo->filho = (BTree**)malloc(sizeof(BTree*)*t*2);
   int i;
   for(i=0; i<(t*2); i++) novo->filho[i] = NULL;
   return novo;
 }
 
 
-TAB *Libera(TAB *a){
-  if(a){
-    if(!a->folha){
-      int i;
-      for(i = 0; i <= a->nchaves; i++) Libera(a->filho[i]);
-    }
-    free(a->chave);
-    free(a->filho);
-    free(a);
-    return NULL;
-  }
-}
-
-
-void Imprime(TAB *a, int andar){
-  if(a){
-    int i,j;
-    for(i=0; i<=a->nchaves-1; i++){
-      Imprime(a->filho[i],andar+1);
-      for(j=0; j<=andar; j++) printf("   ");
-      printf("%d\n", a->chave[i]);
-    }
-    Imprime(a->filho[i],andar+1);
-  }
-}
-
-
-TAB *Busca(TAB* x, int ch){
-  TAB *resp = NULL;
-  if(!x) return resp;
+BTree *busca_letra(BTree* arvore, int letra){
+  BTree *resp = NULL;
+  if(!arvore) return resp;
   int i = 0;
-  while(i < x->nchaves && ch > x->chave[i]) i++;
-  if(i < x->nchaves && ch == x->chave[i]) return x;
-  if(x->folha) return resp;
-  return Busca(x->filho[i], ch);
+  while(i < arvore->nletras && letra > arvore->letra[i]) i++;
+  if(i < arvore->nletras && letra == arvore->letra[i]) return arvore;
+  if(arvore->folha) return resp;
+  return busca_letra(arvore->filho[i], letra);
 }
 
 
-TAB *Inicializa(){
-  return NULL;
+void busca_subordinadas(BTree* arvore, int letra){
+  if(!arvore){
+    printf("Árvore não existe.\n");
+    return;
+  }
+  int i = 0;
+  while(i < arvore->nletras && letra > arvore->letra[i]) i++;
+  if(i < arvore->nletras && letra == arvore->letra[i]){
+    char *vogal = "É vogal.";
+    if (!arvore->vogal) vogal = "É consoante.";
+    else if (arvore->vogal == -1) vogal = "Não é alfabético.";
+    char *maiuscula = "É maiúscula.";
+    if (!arvore->maiuscula) maiuscula = "É minúscula.";
+    else if (arvore->maiuscula == -1) maiuscula = "Não é alfabético.";
+    printf("letra: %c \nfrequencia: %d\n%s\n%s\n", arvore->letra[0], arvore->frequencia, vogal, maiuscula);
+    return;
+  }
+  if (!arvore->folha){
+    busca_subordinadas(arvore->filho[i], letra);
+  } else {
+    printf("Letra não encontrada.\n");
+  }
 }
 
 
-TAB *Divisao(TAB *x, int i, TAB* y, int t){
-  TAB *z=Cria(t);
-  z->nchaves= t - 1;
-  z->folha = y->folha;
-  int j;
-  for(j=0;j<t-1;j++) z->chave[j] = y->chave[j+t];
-  if(!y->folha){
-    for(j=0;j<t;j++){
-      z->filho[j] = y->filho[j+t];
-      y->filho[j+t] = NULL;
+void imprime(BTree *arvore, int andar){
+  if(arvore){
+    int i,j;
+    for(i = 0; i <= arvore->nletras-1; i++){
+      imprime(arvore->filho[i], andar+1);
+      for(j = 0; j <= andar; j++) printf("   ");
+      printf("%d\n", arvore->letra[i]);
+    }
+    imprime(arvore->filho[i], andar+1);
+  }
+}
+
+
+BTree *divisao(BTree *arvore_a, int pos, BTree* arvore_b, int t){
+  BTree *nova = cria(t);
+  nova->nletras = t-1;
+  nova->folha = arvore_b->folha;
+  int i;
+  for(i = 0; i < t-1; i++) nova->letra[i] = arvore_b->letra[i+t];
+  if(!arvore_b->folha){
+    for(i = 0; i < t; i++){
+      nova->filho[i] = arvore_b->filho[i+t];
+      arvore_b->filho[i+t] = NULL;
     }
   }
-  y->nchaves = t-1;
-  for(j=x->nchaves; j>=i; j--) x->filho[j+1]=x->filho[j];
-  x->filho[i] = z;
-  for(j=x->nchaves; j>=i; j--) x->chave[j] = x->chave[j-1];
-  x->chave[i-1] = y->chave[t-1];
-  x->nchaves++;
-  return x;
+  arvore_b->nletras = t-1;
+  for(i = arvore_a->nletras; i >= pos; i--) arvore_a->filho[i+1] = arvore_a->filho[i];
+  arvore_a->filho[pos] = nova;
+  for(i = arvore_a->nletras; i >= pos; i--) arvore_a->letra[i] = arvore_a->letra[i-1];
+  arvore_a->letra[pos-1] = arvore_b->letra[t-1];
+  arvore_a->nletras++;
+  return arvore_a;
 }
 
 
-TAB *Insere_Nao_Completo(TAB *x, int k, int t){
-  int i = x->nchaves-1;
-  if(x->folha){
-    while((i>=0) && (k<x->chave[i])){
-      x->chave[i+1] = x->chave[i];
+BTree *insere_nao_completo(BTree *arvore, int letra, int t){
+  int i = arvore->nletras-1;
+  if(arvore->folha){ //se é folha, vai procurando até achar o primeiro menor que ele mesmo, de trás pra frente. então insere
+    while((i >= 0) && (letra < arvore->letra[i])){
+      arvore->letra[i+1] = arvore->letra[i]; //vai passando a folha pro lado
       i--;
     }
-    x->chave[i+1] = k;
-    x->nchaves++;
-    return x;
+    arvore->letra[i+1] = letra; //insiro na posição seguinte do primeiro menor
+    arvore->nletras++;
+    return arvore;
   }
-  while((i>=0) && (k<x->chave[i])) i--;
-  i++;
-  if(x->filho[i]->nchaves == ((2*t)-1)){
-    x = Divisao(x, (i+1), x->filho[i], t);
-    if(k>x->chave[i]) i++;
+  while((i >= 0) && (letra < arvore->letra[i])) i--;
+  i++; //se não é folha, apenas acha a posição e coloca em i
+  if(arvore->filho[i]->nletras == ((2*t)-1)){ //se está cheio, faz a divisão
+    arvore = divisao(arvore, (i+1), arvore->filho[i], t);
+    if(letra > arvore->letra[i]) i++; //pega a posição pra inserir o filho
   }
-  x->filho[i] = Insere_Nao_Completo(x->filho[i], k, t);
-  return x;
+  arvore->filho[i] = insere_nao_completo(arvore->filho[i], letra, t);
+  return arvore;
 }
 
 
-TAB *Insere(TAB *T, int k, int t){
-  if(Busca(T,k)) return T;
-  if(!T){
-    T=Cria(t);
-    T->chave[0] = k;
-    T->nchaves=1;
-    return T;
+BTree *insere(BTree *arvore, int letra, int freq, int t){
+  if(busca_letra(arvore, letra)) return arvore;
+  if(!arvore){ //caso não exista ainda, cria
+    arvore=cria(t);
+    arvore->letra[0] = letra;
+    arvore->nletras=1;
+    arvore->frequencia=freq;
+    arvore->vogal=eh_vogal(letra);
+    arvore->maiuscula=eh_maiuscula(letra);
+    return arvore;
   }
-  if(T->nchaves == (2*t)-1){
-    TAB *S = Cria(t);
-    S->nchaves=0;
-    S->folha = 0;
-    S->filho[0] = T;
-    S = Divisao(S,1,T,t);
-    S = Insere_Nao_Completo(S,k,t);
-    return S;
+  if(arvore->nletras == (2*t)-1){ //caso esteja cheia, faz a divisão antes de inserir
+    BTree *nova = cria(t);
+    nova->nletras=0;
+    nova->folha = 0;
+    nova->filho[0] = arvore;
+    nova = divisao(nova,1,arvore,t);
+    nova = insere_nao_completo(nova,letra,t);
+    return nova;
   }
-  T = Insere_Nao_Completo(T,k,t);
-  return T;
+  arvore = insere_nao_completo(arvore,letra,t); 
+  return arvore;
 }
 
-
-TAB* remover(TAB* arv, int ch, int t){
-  if(!arv) return arv;
+int main(){
+  BTree *arvore = inicializa();
+  char letras[8] = {'b', 'h', 'd', 'c', 'e', 'f', 'g', 'a'};
+  int frequencias[8] = {1, 1, 1, 2, 3, 2, 1, 4};
+  int t = 2;
   int i;
-  printf("Removendo %d...\n", ch);
-  for(i = 0; i<arv->nchaves && arv->chave[i] < ch; i++);
-  if(i < arv->nchaves && ch == arv->chave[i]){ //CASOS 1, 2A, 2B e 2C
-    if(arv->folha){ //CASO 1
-      printf("\nCASO 1\n");
-      int j;
-      for(j=i; j<arv->nchaves-1;j++) arv->chave[j] = arv->chave[j+1];
-      arv->nchaves--;
-      return arv;      
-    }
-    if(!arv->folha && arv->filho[i]->nchaves >= t){ //CASO 2A
-      printf("\nCASO 2A\n");
-      TAB *y = arv->filho[i];  //Encontrar o predecessor k' de k na árvore com raiz em y
-      while(!y->folha) y = y->filho[y->nchaves];
-      int temp = y->chave[y->nchaves-1];
-      arv->filho[i] = remover(arv->filho[i], temp, t); 
-      //Eliminar recursivamente K e substitua K por K' em x
-      arv->chave[i] = temp;
-      return arv;
-    }
-    if(!arv->folha && arv->filho[i+1]->nchaves >= t){ //CASO 2B
-      printf("\nCASO 2B\n");
-      TAB *y = arv->filho[i+1];  //Encontrar o sucessor k' de k na árvore com raiz em y
-      while(!y->folha) y = y->filho[0];
-      int temp = y->chave[0];
-      y = remover(arv->filho[i+1], temp, t); //Eliminar recursivamente K e substitua K por K' em x
-      arv->chave[i] = temp;
-      return arv;
-    }
-    if(!arv->folha && arv->filho[i+1]->nchaves == t-1 && arv->filho[i]->nchaves == t-1){ //CASO 2C
-      printf("\nCASO 2C\n");
-      TAB *y = arv->filho[i];
-      TAB *z = arv->filho[i+1];
-      y->chave[y->nchaves] = ch;          //colocar ch ao final de filho[i]
-      int j;
-      for(j=0; j<t-1; j++)                //juntar chave[i+1] com chave[i]
-        y->chave[t+j] = z->chave[j];
-      for(j=0; j<=t; j++)                 //juntar filho[i+1] com filho[i]
-        y->filho[t+j] = z->filho[j];
-      y->nchaves = 2*t-1;
-      for(j=i; j < arv->nchaves-1; j++)   //remover ch de arv
-        arv->chave[j] = arv->chave[j+1];
-      for(j=i+1; j <= arv->nchaves; j++)  //remover ponteiro para filho[i+1]
-        arv->filho[j] = arv->filho[j+1];
-      arv->filho[j] = NULL; //Campello
-      arv->nchaves--;
-      arv->filho[i] = remover(arv->filho[i], ch, t);
-      return arv;   
-    }   
+  for (i=0; i<8; i++){
+    arvore = insere(arvore, letras[i], frequencias[i], t);
   }
-
-  TAB *y = arv->filho[i], *z = NULL;
-  if (y->nchaves == t-1){ //CASOS 3A e 3B
-    if((i < arv->nchaves) && (arv->filho[i+1]->nchaves >=t)){ //CASO 3A
-      printf("\nCASO 3A: i menor que nchaves\n");
-      z = arv->filho[i+1];
-      y->chave[t-1] = arv->chave[i];   //dar a y a chave i da arv
-      y->nchaves++;
-      arv->chave[i] = z->chave[0];     //dar a arv uma chave de z
-      int j;
-      for(j=0; j < z->nchaves-1; j++)  //ajustar chaves de z
-        z->chave[j] = z->chave[j+1];
-      //z->chave[j] = 0; Rosseti
-      y->filho[y->nchaves] = z->filho[0]; //enviar ponteiro menor de z para o novo elemento em y
-      for(j=0; j < z->nchaves; j++)       //ajustar filhos de z
-        z->filho[j] = z->filho[j+1];
-      z->nchaves--;
-      arv->filho[i] = remover(arv->filho[i], ch, t);
-      return arv;
-    }
-    if((i > 0) && (!z) && (arv->filho[i-1]->nchaves >=t)){ //CASO 3A
-      printf("\nCASO 3A: i igual a nchaves\n");
-      z = arv->filho[i-1];
-      int j;
-      for(j = y->nchaves; j>0; j--)               //encaixar lugar da nova chave
-        y->chave[j] = y->chave[j-1];
-      for(j = y->nchaves+1; j>0; j--)             //encaixar lugar dos filhos da nova chave
-        y->filho[j] = y->filho[j-1];
-      y->chave[0] = arv->chave[i-1];              //dar a y a chave i da arv
-      y->nchaves++;
-      arv->chave[i-1] = z->chave[z->nchaves-1];   //dar a arv uma chave de z
-      y->filho[0] = z->filho[z->nchaves];         //enviar ponteiro de z para o novo elemento em y
-      z->nchaves--;
-      arv->filho[i] = remover(y, ch, t);
-      return arv;
-    }
-    if(!z){ //CASO 3B
-      if(i < arv->nchaves && arv->filho[i+1]->nchaves == t-1){
-        printf("\nCASO 3B: i menor que nchaves\n");
-        z = arv->filho[i+1];
-        y->chave[t-1] = arv->chave[i];     //pegar chave [i] e coloca ao final de filho[i]
-        y->nchaves++;
-        int j;
-        for(j=0; j < t-1; j++){
-          y->chave[t+j] = z->chave[j];     //passar filho[i+1] para filho[i]
-          y->nchaves++;
-        }
-        if(!y->folha){
-          for(j=0; j<t; j++){
-            y->filho[t+j] = z->filho[j];
-          }
-        }
-        for(j=i; j < arv->nchaves-1; j++){ //limpar referências de i
-          arv->chave[j] = arv->chave[j+1];
-          arv->filho[j+1] = arv->filho[j+2];
-        }
-        arv->nchaves--;
-        arv = remover(arv, ch, t);
-        return arv;
-      }
-      if((i > 0) && (arv->filho[i-1]->nchaves == t-1)){ 
-        printf("\nCASO 3B: i igual a nchaves\n");
-        z = arv->filho[i-1];
-        if(i == arv->nchaves)
-          z->chave[t-1] = arv->chave[i-1]; //pegar chave[i] e poe ao final de filho[i-1]
-        else
-          z->chave[t-1] = arv->chave[i];   //pegar chave [i] e poe ao final de filho[i-1]
-        z->nchaves++;
-        int j;
-        for(j=0; j < t-1; j++){
-          z->chave[t+j] = y->chave[j];     //passar filho[i+1] para filho[i]
-          z->nchaves++;
-        }
-        if(!z->folha){
-          for(j=0; j<t; j++){
-            z->filho[t+j] = y->filho[j];
-          }
-        }
-        arv->nchaves--;
-        arv->filho[i-1] = z;
-        arv = remover(arv, ch, t);
-        return arv;
-      }
-    }
-  }  
-  arv->filho[i] = remover(arv->filho[i], ch, t);
-  return arv;
-}
-
-
-TAB* retira(TAB* arv, int k, int t){
-  if(!arv || !Busca(arv, k)) return arv;
-  return remover(arv, k, t);
-}
-
-
-int main(int argc, char *argv[]){
-  TAB * arvore = Inicializa();
-  int num = 0, from, to;
-  while(num != -1){
-    printf("Digite um numero para adicionar. 0 para imprimir. -9 para remover e -1 para sair\n");
-    scanf("%i", &num);
-    if(num == -9){
-      scanf("%d", &from);
-      arvore = retira(arvore, from, t);
-      Imprime(arvore,0);
-    }
-    else if(num == -1){
-      printf("\n");
-      Imprime(arvore,0);
-      Libera(arvore);
-      return 0;
-    }
-    else if(!num){
-      printf("\n");
-      Imprime(arvore,0);
-    }
-    else arvore = Insere(arvore, num, t);
-    printf("\n\n");
-  }
+  imprime(arvore, 0);
+  busca_subordinadas(arvore, 'a');
+  return 1;
 }
