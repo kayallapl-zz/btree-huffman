@@ -2,12 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-
 typedef struct btree{
   int nletras, folha, *letra, frequencia, vogal, maiuscula;
   struct btree **filho;
 }BTree;
-
 
 int eh_vogal(int letra){
   char vogais[] = {'a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U'};
@@ -17,7 +15,6 @@ int eh_vogal(int letra){
   if ((letra >= 'a' && letra <= 'z') || (letra >= 'A' && letra <= 'Z')) return 0; //caso não seja vogal
   return -1; //caso não seja alfabético
 }
-
 
 int eh_maiuscula(int letra){
   if (letra >= 'A' && letra <= 'Z') return 1; //caso seja maiuscula
@@ -52,7 +49,6 @@ BTree *inicializa(){
   return NULL;
 }
 
-
 BTree *cria(int t){
   BTree* novo = (BTree*)malloc(sizeof(BTree));
   novo->nletras = 0;
@@ -66,7 +62,6 @@ BTree *cria(int t){
   return novo;
 }
 
-
 BTree *busca_letra(BTree* arvore, int letra){
   BTree *resp = NULL;
   if(!arvore) return resp;
@@ -76,7 +71,6 @@ BTree *busca_letra(BTree* arvore, int letra){
   if(arvore->folha) return resp;
   return busca_letra(arvore->filho[i], letra);
 }
-
 
 void busca_subordinadas(BTree* arvore, int letra){
   if(!arvore){
@@ -102,7 +96,6 @@ void busca_subordinadas(BTree* arvore, int letra){
   }
 }
 
-
 void imprime(BTree *arvore, int andar){
   if(arvore){
     int i,j;
@@ -114,7 +107,6 @@ void imprime(BTree *arvore, int andar){
     imprime(arvore->filho[i], andar+1);
   }
 }
-
 
 BTree *divisao(BTree *arvore_a, int pos, BTree* arvore_b, int t){
   BTree *nova = cria(t);
@@ -137,7 +129,6 @@ BTree *divisao(BTree *arvore_a, int pos, BTree* arvore_b, int t){
   return arvore_a;
 }
 
-
 BTree *insere_nao_completo(BTree *arvore, int letra, int t){
   int i = arvore->nletras-1;
   if(arvore->folha){ //se é folha, vai procurando até achar o primeiro menor que ele mesmo, de trás pra frente. então insere
@@ -158,7 +149,6 @@ BTree *insere_nao_completo(BTree *arvore, int letra, int t){
   arvore->filho[i] = insere_nao_completo(arvore->filho[i], letra, t);
   return arvore;
 }
-
 
 BTree *insere(BTree *arvore, int letra, int freq, int t){
   if(busca_letra(arvore, letra)) return arvore;
@@ -183,7 +173,6 @@ BTree *insere(BTree *arvore, int letra, int freq, int t){
   arvore = insere_nao_completo(arvore,letra,t); 
   return arvore;
 }
-
 
 int altura_letra(BTree* arvore, int h, int letra){
   int i = 0;
@@ -217,7 +206,7 @@ char *codifica_palavra(BTree* arvore, char *palavra){
       tam_codigo += tam;
     }
   }
-  char codigo[tam_codigo];
+  char *codigo = malloc(sizeof(char) * tam_codigo);
   strcpy(codigo, "");
   for (i = 0; i<tam_palavra; i++){ //para formar o código
     if (!busca_letra(arvore, palavra[i])){
@@ -226,11 +215,42 @@ char *codifica_palavra(BTree* arvore, char *palavra){
       strcat(codigo, codifica_letra(arvore, palavra[i]));
     }
   }
-  printf("palavra: %s\n", palavra);
-  printf("palavra encriptada: %s\n", codigo);
-  printf("tamanho final: %d\n", tam_codigo);
+  // printf("palavra: %s\n", palavra);
+  // printf("palavra encriptada: %s\n", codigo);
+  // printf("tamanho final: %d\n", tam_codigo);
+  return codigo;
 }
 
+char *descodifica_palavra(BTree *arvore, char *codigo){
+  int tam_palavra = strlen(codigo), i = 0;
+  char *palavra = malloc(sizeof(char) * tam_palavra);
+  strcpy(palavra, "");
+  while (i < tam_palavra){
+    if (codigo[i] != '?'){
+      int altura = codigo[i] - '0'; // para parsear o char em int - pq se não ele pega o int correspondente da ascii
+      BTree *aux = arvore;
+      int j = 0;
+      while (j<altura){
+        i++;
+        int pos = codigo[i] - '0';
+        aux = aux->filho[pos];
+        j++;
+      }
+      i++;
+      int pos = codigo[i] - '0';
+      char *letra = malloc(sizeof(char));
+      letra[0] = aux->letra[pos];
+      strcat(palavra, letra);
+    }
+    else strcat(palavra, "?");
+    
+    i++;
+  }
+
+  printf("codigo: %s\n", codigo);
+  printf("codigo desencriptado: %s\n", palavra);
+  return palavra;
+}
 
 int main(){
   BTree *arvore = inicializa();
@@ -249,6 +269,7 @@ int main(){
   // printf("altura: %d\n", altura);
   // printf("tam: %ld\n", strlen(codigo));
 
-  char *codigo = codifica_palavra(arvore, "aaahslw");
+  char *codigo = codifica_palavra(arvore, "aaah bb");
+  char *palavra = descodifica_palavra(arvore, codigo);
   return 1;
 }
