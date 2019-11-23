@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 
 typedef struct btree{
@@ -108,7 +109,7 @@ void imprime(BTree *arvore, int andar){
     for(i = 0; i <= arvore->nletras-1; i++){
       imprime(arvore->filho[i], andar+1);
       for(j = 0; j <= andar; j++) printf("   ");
-      printf("%d\n", arvore->letra[i]);
+      printf("%c\n", arvore->letra[i]);
     }
     imprime(arvore->filho[i], andar+1);
   }
@@ -183,16 +184,71 @@ BTree *insere(BTree *arvore, int letra, int freq, int t){
   return arvore;
 }
 
+
+int altura_letra(BTree* arvore, int h, int letra){
+  int i = 0;
+  while(i < arvore->nletras && letra > arvore->letra[i]) i++;
+  if(i < arvore->nletras && letra == arvore->letra[i]) return 0;
+  h = 1 + altura_letra(arvore->filho[i], h, letra);
+  return h;
+}
+
+char *codifica_letra(BTree* arvore, int letra){
+  int altura = altura_letra(arvore, 0, letra), i;
+  char *codigo = malloc(sizeof(char) * altura+1);
+  codigo[0] = altura + '0'; //o primeiro caractere será a altura // o + '0' adiciona o dígito como caractere e não como int 
+  BTree *aux = arvore;
+  for (i = 1; i <= altura+1; i++){
+    int contador = 0;
+    while (contador < aux->nletras && letra > aux->letra[contador]) contador++;
+    codigo[i] = contador + '0';
+    aux = aux->filho[contador];
+  }
+  return codigo;
+}
+
+char *codifica_palavra(BTree* arvore, char *palavra){
+  int tam_palavra = strlen(palavra), tam_codigo = 0, i;
+  for (i = 0; i<tam_palavra; i++){ //para saber o tamanho final do código, criando assim uma array com o tamanho exato, sem necessidade de faltar ou sobrar espaço
+    if (!busca_letra(arvore, palavra[i])){
+      tam_codigo += 1;
+    }else{
+      int tam = strlen(codifica_letra(arvore, palavra[i]));
+      tam_codigo += tam;
+    }
+  }
+  char codigo[tam_codigo];
+  strcpy(codigo, "");
+  for (i = 0; i<tam_palavra; i++){ //para formar o código
+    if (!busca_letra(arvore, palavra[i])){
+      strcat(codigo, "?");
+    }else{
+      strcat(codigo, codifica_letra(arvore, palavra[i]));
+    }
+  }
+  printf("palavra: %s\n", palavra);
+  printf("palavra encriptada: %s\n", codigo);
+  printf("tamanho final: %d\n", tam_codigo);
+}
+
+
 int main(){
   BTree *arvore = inicializa();
-  char letras[8] = {'b', 'h', 'd', 'c', 'e', 'f', 'g', 'a'};
-  int frequencias[8] = {1, 1, 1, 2, 3, 2, 1, 4};
-  qs_simultaneo(letras, frequencias, 0, 7);
+  char letras[9] = {'b', 'h', 'd', 'c', 'e', 'f', 'g', 'a', 'i'};
+  int frequencias[9] = {1, 1, 1, 2, 3, 2, 1, 4, 3};
+  qs_simultaneo(letras, frequencias, 0, 8);
   int i;
   int t = 2;
-  for (i=0; i<8; i++){
+  for (i=0; i<9; i++){
     arvore = insere(arvore, letras[i], frequencias[i], t);
   }
-  busca_subordinadas(arvore, 'a');
+  // busca_subordinadas(arvore, 'a');
+  // int altura = altura_letra(arvore, 0, 'a');
+  // char *codigo = codifica_letra(arvore, 'a');
+  // printf("%s\n", codigo);
+  // printf("altura: %d\n", altura);
+  // printf("tam: %ld\n", strlen(codigo));
+
+  char *codigo = codifica_palavra(arvore, "aaahslw");
   return 1;
 }
