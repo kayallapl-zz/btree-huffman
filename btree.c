@@ -3,7 +3,8 @@
 #include <string.h>
 
 typedef struct btree{
-  int nletras, folha, *letra, frequencia, vogal, maiuscula;
+  int nletras, folha, *letra, vogal, maiuscula;
+  float frequencia;
   struct btree **filho;
 }BTree;
 
@@ -86,7 +87,7 @@ void busca_subordinadas(BTree* arvore, int letra){
     char *maiuscula = "É maiúscula.";
     if (!arvore->maiuscula) maiuscula = "É minúscula.";
     else if (arvore->maiuscula == -1) maiuscula = "Não é alfabético.";
-    printf("letra: %c \nfrequencia: %d\n%s\n%s\n", arvore->letra[0], arvore->frequencia, vogal, maiuscula);
+    printf("letra: %c \nfrequencia: %f\n%s\n%s\n", arvore->letra[0], arvore->frequencia, vogal, maiuscula);
     return;
   }
   if (!arvore->folha){
@@ -150,7 +151,7 @@ BTree *insere_nao_completo(BTree *arvore, int letra, int t){
   return arvore;
 }
 
-BTree *insere(BTree *arvore, int letra, int freq, int t){
+BTree *insere(BTree *arvore, int letra, float freq, int t){
   if(busca_letra(arvore, letra)) return arvore;
   if(!arvore){ //caso não exista ainda, cria
     arvore=cria(t);
@@ -238,7 +239,7 @@ char *descodifica_palavra(BTree *arvore, char *codigo){
       }
       i++;
       int pos = codigo[i] - '0';
-      char *letra = malloc(sizeof(char));
+      char *letra = malloc(sizeof(char)); //tem que alocar o novo char
       letra[0] = aux->letra[pos];
       strcat(palavra, letra);
     }
@@ -247,8 +248,8 @@ char *descodifica_palavra(BTree *arvore, char *codigo){
     i++;
   }
 
-  printf("codigo: %s\n", codigo);
-  printf("codigo desencriptado: %s\n", palavra);
+  // printf("codigo: %s\n", codigo);
+  // printf("codigo desencriptado: %s\n", palavra);
   return palavra;
 }
 
@@ -262,14 +263,18 @@ int main(){
   for (i=0; i<9; i++){
     arvore = insere(arvore, letras[i], frequencias[i], t);
   }
-  // busca_subordinadas(arvore, 'a');
+  busca_subordinadas(arvore, 'a');
   // int altura = altura_letra(arvore, 0, 'a');
   // char *codigo = codifica_letra(arvore, 'a');
   // printf("%s\n", codigo);
   // printf("altura: %d\n", altura);
   // printf("tam: %ld\n", strlen(codigo));
 
-  char *codigo = codifica_palavra(arvore, "aaah bb");
-  char *palavra = descodifica_palavra(arvore, codigo);
+  char palavra[] = "abada h";
+  printf("palavra inicial: %s\n", palavra);
+  char *codigo = codifica_palavra(arvore, palavra);
+  printf("palavra encriptada: %s\n", codigo);
+  char *palavra_desencriptada = descodifica_palavra(arvore, codigo);
+  printf("palavra desencriptada: %s\n", palavra_desencriptada);
   return 1;
 }
