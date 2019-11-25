@@ -1,12 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-typedef struct btree{
-  int nletras, folha, *letra;
-  float *frequencia;
-  struct btree **filho;
-}BTree;
+#include "btree.h"
 
 int eh_vogal(int letra){
   char vogais[] = {'a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U'};
@@ -457,34 +449,4 @@ void busca_categoria(BTree* arvore, int categoria){
     }
     busca_categoria(arvore->filho[i], categoria);
   }
-}
-
-int main(){
-  BTree *arvore = inicializa();
-  char letras[11] = {'b', 'h', 'd', 'c', 'e', 'f', 'g', 'a', 'i', '!', 'A'};
-  float frequencias[11] = {1.1, 1.3, 1.4, 2.5, 3.6, 2.8, 1.9, 4.0, 3.0, 4.5, 6.7};
-  qs_simultaneo(letras, frequencias, 0, 10);
-  int i;
-  int t = 2;
-  for (i=0; i<11; i++){
-    arvore = insere(arvore, letras[i], frequencias[i], t);
-  }
-  busca_subordinadas(arvore, 'b');
-  // int altura = altura_letra(arvore, 0, 'a');
-  // char *codigo = codifica_letra(arvore, 'a');
-  // printf("%s\n", codigo);
-  // printf("altura: %d\n", altura);
-  // printf("tam: %ld\n", strlen(codigo));
-  // char palavra[] = "abada h";
-  // printf("palavra inicial: %s\n", palavra);
-  // char *codigo = codifica_palavra(arvore, palavra);
-  // printf("palavra encriptada: %s\n", codigo);
-  // char *palavra_desencriptada = descodifica_palavra(arvore, codigo);
-  // printf("palavra desencriptada: %s\n", palavra_desencriptada);
-  // arvore = remover(arvore, 'a', t);
-  troca_frequencia(arvore, 'b', 3.428);
-  printf("Categoria: \n");
-  busca_categoria(arvore, 3);
-  printf("\n");
-  return 1;
 }
