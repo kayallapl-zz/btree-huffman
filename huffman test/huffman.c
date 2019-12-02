@@ -29,7 +29,11 @@ LH* insere_lista(AH* arvore, LH *t){
 }
 
 int tam_array(int *array){
-	return sizeof(array)/sizeof(array[0]);
+	int i = 0;
+	while(array[i]){
+		i++;
+	}
+	return i;
 }
 
 void imprime_lista(LH* lista){
@@ -44,6 +48,25 @@ void imprime_lista(LH* lista){
 		aux = aux->prox;
 	}
 	printf("\n");
+}
+
+void imprime_aux(AH* a, int andar){
+  if(a){
+    int j;
+    imprime_aux(a->esq, andar + 1);
+    for(j = 0; j <= andar; j++) printf("       ");
+	int size = tam_array(a->letra), i;
+	for (i = 0; i < size; i++){
+		printf("%c", a->letra[i]);
+	}
+	// printf("%f", a->freq);
+    printf("\n");
+    imprime_aux(a->dir, andar + 1);
+  }
+}
+
+void imprime_arvore(AH* a){
+  imprime_aux(a, 0);
 }
 
 int indice_menor(LH* lista, int menor_diferente){
@@ -92,11 +115,7 @@ LH* remove_elemento(LH* lista, int pos){
 	return lista;
 }
 
-AH* junta_elementos(LH* lista){
-	int menor1 = indice_menor(lista, -1);
-	int menor2 = indice_menor(lista, menor1);
-	AH* dir = busca_elemento(lista, menor1);
-	AH* esq = busca_elemento(lista, menor2);
+AH* junta_elementos(LH* lista, AH* dir, AH* esq){
 	float nova_freq = dir->freq + esq->freq;
 	int *chave1 = dir->letra;
 	int *chave2 = esq->letra;
@@ -121,62 +140,97 @@ AH* build_huffman(LH* lista){
 	while(lista->prox){
 		int menor1 = indice_menor(lista, -1);
 		int menor2 = indice_menor(lista, menor1);
-		printf("\nANTES DA REMOçAO: menor1: %d, menor2: %d\n", menor1, menor2);
 		AH* dir = busca_elemento(lista, menor1);
 		AH* esq = busca_elemento(lista, menor2);
-		AH* arvore = junta_elementos(lista);
+		AH* arvore = junta_elementos(lista, dir, esq);
 		lista = insere_lista(arvore, lista);
 		int menor = indice_menor(lista, -1);
-		printf("DEPOS DA REM\n");
-		printf("menor1 b: %d\n", menor);
 		lista = remove_elemento(lista, menor);
 		menor = indice_menor(lista, -1);
-		printf("menor2 b: %d\n", menor);
 		lista = remove_elemento(lista, menor);
-
-		imprime_lista(lista);
 	}
 	return lista->arvore;
 }
 
-void imprime_aux(AH* a, int andar){
-  if(a){
-    int j;
-    imprime_aux(a->esq, andar + 1);
-    for(j = 0; j <= andar; j++) printf("   ");
-	int size = tam_array(a->letra), i;
-	for (i = 0; i <= size; i++){
-		printf("%c", a->letra[i]);
-	}
-	// printf("%f", a->freq);
-    printf("\n");
-    imprime_aux(a->dir, andar + 1);
-  }
+int busca_letra(AH* arv, int letra)  
+{
+    if(arv->esq == NULL && arv->dir == NULL){
+    	if (arv->letra[0] == letra) return 1;
+    	else return 0;
+    }
+    else
+        return busca_letra(arv->esq, letra) + busca_letra(arv->dir, letra); 
 }
 
-void imprime_arvore(AH* a){
-  imprime_aux(a, 0);
+int altura_letra(AH* arv, int h, int letra){
+	int altura = h;
+    if(arv->esq == NULL && arv->dir == NULL){
+    	if (arv->letra[0] == letra) return altura;
+    	else return 0;
+    }
+    else
+    	altura++;
+    	return altura_letra(arv->esq, altura, letra) + altura_letra(arv->dir, altura, letra); 
+}
+
+char *codifica_letra(AH* arvore, int letra){
+  int altura = altura_letra(arvore, 0, letra), i;
+  char *codigo = malloc(sizeof(char) * altura);
+  AH *aux = arvore;
+  for (i=0; i < altura; i++){
+	if(busca_letra(arvore->esq, letra)) {
+  		codigo[i] = '0';
+		aux = aux->esq;
+	} else if (busca_letra(arvore->dir, letra)) {
+  		codigo[i] = '1';
+		aux = aux->dir;
+	}
+  }
+  return codigo;
+}
+
+char *codifica_palavra(AH* arvore, char *palavra){
+  int tam_palavra = strlen(palavra), tam_codigo = 0, i, tam_temp;
+  for (i = 0; i<tam_palavra; i++){ 
+    if (!busca_letra(arvore, palavra[i])){
+      tam_codigo += 1;
+    }else{
+      tam_temp = altura_letra(arvore, 0, palavra[i]);
+      tam_codigo += tam_temp;
+    }
+  }
+  char *codigo = malloc(sizeof(char) * tam_codigo);
+  strcpy(codigo, "");
+  for (i = 0; i<tam_palavra; i++){ //para formar o código
+    if (!busca_letra(arvore, palavra[i])){
+      strcat(codigo, "?");
+    }else{
+    	tam_temp = altura_letra(arvore, 0, palavra[i]);
+    	int j;
+    	char *codigo_letra = malloc(sizeof(char) * tam_temp);
+    	char* temp = codifica_letra(arvore, palavra[i]);
+    	for (j=0; j < tam_temp; j++){
+			codigo_letra[j] = temp[j];
+		}
+      	strcat(codigo, codigo_letra);
+    }
+  }
+  printf("palavra: %s\n", palavra);
+  printf("palavra encriptada: %s\n", codigo);
+  return codigo;
 }
 
 int main(){
 	LH *teste = inicializa();
-	char letras[5] = {'b', 'h', 'd', 'c', 'e'};
-  	float frequencias[5] = {0.2, 0.3, 0.4, 0.5, 0.6};
+	char letras[8] = {'b', 'h', 'd', 'c', 'e', 'j', 'k', 'l'};
+  	float frequencias[8] = {0.2, 0.3, 0.4, 0.5, 0.6, 0.4, 0.8, 0.9};
   	int i;
-  	for(i = 0; i<5; i++){
+  	for(i = 0; i<8; i++){
 		AH* arvore = cria_arvore(letras[i], frequencias[i], NULL, NULL);
   		teste = insere_lista(arvore, teste);
   	}
-  	int menor = indice_menor(teste, -1);
-  	int segundo_menor = indice_menor(teste, menor);
-
-  	imprime_lista(teste);
   	AH* arv = build_huffman(teste);
-  	// imprime_lista(teste);
   	imprime_arvore(arv);
   	printf("\n\n");
-
-
-
-  	// AH* testezin = junta_elementos(teste);
+    char *codigo = codifica_palavra(arv, "lhd");
 }
