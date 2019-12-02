@@ -121,16 +121,12 @@ AH* junta_elementos(LH* lista, AH* dir, AH* esq){
 	int *chave2 = esq->letra;
 	int size1 = tam_array(chave1);
 	int size2 = tam_array(chave2);
-	printf("size 1: %d, size 2: %d\n", size1, size2);
 	int *nova_chave = (int*)malloc(sizeof(int)*(size1+size2)), i, j, k;
 	for (i = 0; i < size1; i++){
 		nova_chave[i] = chave1[i];
-		printf("%d - %c\n", chave1[i], chave1[i]);
 	}
-	printf("\n\n");
 	for (j = i; j < (size1+size2); j++){
 		nova_chave[j] = chave2[j-size1];
-		printf("%d - %c\n", chave2[j-size1], chave2[j-size1]);
 	}
 	AH* soma = (AH*)malloc(sizeof(AH));
 	soma->freq = nova_freq;
