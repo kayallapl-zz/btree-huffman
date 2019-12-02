@@ -30,8 +30,8 @@ LH* insere_lista(AH* arvore, LH *t){
 
 int tam_array(int *array){
 	int i = 0;
-	while(array[i]){
-		i++;
+	while(array[i] && ((array[i] >= 'A' && array[i] <= 'Z') || (array[i] >= 'a' && array[i] <= 'z'))){
+		i++; //testa se é uma letra, pq o array foi alocado dinamicamente, então ele acaba não dando certo
 	}
 	return i;
 }
@@ -121,12 +121,16 @@ AH* junta_elementos(LH* lista, AH* dir, AH* esq){
 	int *chave2 = esq->letra;
 	int size1 = tam_array(chave1);
 	int size2 = tam_array(chave2);
+	printf("size 1: %d, size 2: %d\n", size1, size2);
 	int *nova_chave = (int*)malloc(sizeof(int)*(size1+size2)), i, j, k;
 	for (i = 0; i < size1; i++){
 		nova_chave[i] = chave1[i];
+		printf("%d - %c\n", chave1[i], chave1[i]);
 	}
+	printf("\n\n");
 	for (j = i; j < (size1+size2); j++){
 		nova_chave[j] = chave2[j-size1];
+		printf("%d - %c\n", chave2[j-size1], chave2[j-size1]);
 	}
 	AH* soma = (AH*)malloc(sizeof(AH));
 	soma->freq = nova_freq;
@@ -229,5 +233,5 @@ int main(){
   	AH* arv = build_huffman(teste);
   	imprime_arvore(arv);
   	printf("\n\n");
-    char *codigo = codifica_palavra(arv, "lhd");
+    char *codigo = codifica_palavra(arv, "lhlaksdd");
 }
