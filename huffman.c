@@ -181,15 +181,16 @@ char *codifica_letra(AH* arvore, int letra){
 		AH *aux = arvore;
 		for (i=0; i < altura; i++){
 			if(busca_letra(aux->esq, letra)) {
-		  		strcat(codigo, "1");
+		  		strcat(codigo, "0");
 				aux = aux->esq;
 			} else if(busca_letra(aux->dir, letra)) {
-		  		strcat(codigo, "0");
+		  		strcat(codigo, "1");
 				aux = aux->dir;
 			}
 		}
 		return codigo;
  	}
+ 	return NULL;
 }
 
 char *codifica_palavra(AH* arvore, char *palavra){
@@ -217,6 +218,30 @@ char *codifica_palavra(AH* arvore, char *palavra){
   return codigo;
 }
 
+char *decripta_palavra(AH *arvore, char *palavra){
+	int tam_palavra = strlen(palavra);
+	char *ans = malloc(sizeof(char)* tam_palavra);
+	strcpy(ans, "");
+	AH* aux = arvore;
+	for (int i = 0; i<tam_palavra; i++){
+		if(palavra[i] == '0') aux = aux->esq;
+		else if(palavra[i] == '1') aux = aux->dir;
+		else{
+			strcat(ans, "?");
+			aux = arvore;
+		} 
+		if (aux->esq == NULL && aux->dir == NULL){
+			char *letra = malloc(sizeof(char));
+			letra[0] = aux->letra[0];
+			strcat(ans,letra);
+			aux = arvore;
+		}
+	}
+	printf("palavra: %s\n", palavra);
+	printf("palavra decriptada: %s\n", ans);
+	return ans;
+}
+
 int main(){
 	LH *teste = inicializa();
 	char letras[8] = {'b', 'h', 'd', 'c', 'e', 'j', 'k', 'l'};
@@ -230,4 +255,5 @@ int main(){
   	imprime_arvore(arv);
   	printf("\n\n");
     char *codigo = codifica_palavra(arv, "lhlaksdd");
+    char *codigo2 = decripta_palavra(arv, "10010010?000?111111");
 }

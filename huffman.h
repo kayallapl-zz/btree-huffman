@@ -30,3 +30,4 @@ int busca_letra(AH* arv, int letra);
 int altura_letra(AH* arv, int h, int letra);
 char *codifica_letra(AH* arvore, int letra);
 char *codifica_palavra(AH* arvore, char *palavra);
+char *decripta_palavra(AH *arvore, char *palavra);
