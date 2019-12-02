@@ -152,8 +152,7 @@ AH* build_huffman(LH* lista){
 	return lista->arvore;
 }
 
-int busca_letra(AH* arv, int letra)  
-{
+int busca_letra(AH* arv, int letra){
     if(arv->esq == NULL && arv->dir == NULL){
     	if (arv->letra[0] == letra) return 1;
     	else return 0;

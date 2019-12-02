@@ -2,5 +2,5 @@
 b and huffman tree with criptography in C
 
 ## how to run
-`gcc -o main btree.c huffmantree.c main.c`
+`gcc -o main btree.c huffman.c main.c`
 `./main`
