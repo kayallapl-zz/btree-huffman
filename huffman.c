@@ -1,6 +1,6 @@
 #include "huffman.h"
 
-LH *inicializa(){
+LH *inicializa_huffman(){
 	return NULL;
 }
 
@@ -152,17 +152,17 @@ AH* build_huffman(LH* lista){
 	return lista->arvore;
 }
 
-int busca_letra(AH* arv, int letra){
+int busca_letra_huffman(AH* arv, int letra){
 	if (!arv) return 0;
     if(arv->esq == NULL && arv->dir == NULL){
     	if (arv->letra[0] == letra) return 1;
     	else return 0;
     }
     else
-        return busca_letra(arv->esq, letra) + busca_letra(arv->dir, letra); 
+        return busca_letra_huffman(arv->esq, letra) + busca_letra_huffman(arv->dir, letra); 
 }
 
-int altura_letra(AH* arv, int h, int letra){
+int altura_letra_huffman(AH* arv, int h, int letra){
 	int altura = h;
     if(arv->esq == NULL && arv->dir == NULL){
     	if (arv->letra[0] == letra) return altura;
@@ -170,20 +170,20 @@ int altura_letra(AH* arv, int h, int letra){
     }
     else
     	altura++;
-    	return altura_letra(arv->esq, altura, letra) + altura_letra(arv->dir, altura, letra); 
+    	return altura_letra_huffman(arv->esq, altura, letra) + altura_letra_huffman(arv->dir, altura, letra); 
 }
 
-char *codifica_letra(AH* arvore, int letra){
-	if (busca_letra(arvore, letra)){
-		int altura = altura_letra(arvore, 0, letra), i;
+char *codifica_letra_huffman(AH* arvore, int letra){
+	if (busca_letra_huffman(arvore, letra)){
+		int altura = altura_letra_huffman(arvore, 0, letra), i;
 		char *codigo = malloc((sizeof(char) * altura));
 		strcpy(codigo, "");
 		AH *aux = arvore;
 		for (i=0; i < altura; i++){
-			if(busca_letra(aux->esq, letra)) {
+			if(busca_letra_huffman(aux->esq, letra)) {
 		  		strcat(codigo, "0");
 				aux = aux->esq;
-			} else if(busca_letra(aux->dir, letra)) {
+			} else if(busca_letra_huffman(aux->dir, letra)) {
 		  		strcat(codigo, "1");
 				aux = aux->dir;
 			}
@@ -193,28 +193,28 @@ char *codifica_letra(AH* arvore, int letra){
  	return NULL;
 }
 
-char *codifica_palavra(AH* arvore, char *palavra){
+char *codifica_palavra_huffman(AH* arvore, char *palavra){
   int tam_palavra = strlen(palavra), tam_codigo = 0, i, tam_temp;
   for (i = 0; i<tam_palavra; i++){ 
-    if (!busca_letra(arvore, palavra[i])){
+    if (!busca_letra_huffman(arvore, palavra[i])){
       tam_codigo += 1;
     }else{
-      tam_temp = altura_letra(arvore, 0, palavra[i]);
+      tam_temp = altura_letra_huffman(arvore, 0, palavra[i]);
       tam_codigo += tam_temp;
     }
   }
   char *codigo = malloc(sizeof(char) * tam_codigo);
   strcpy(codigo, "");
   for (i = 0; i<tam_palavra; i++){ //para formar o código
-    if (!busca_letra(arvore, palavra[i])){
+    if (!busca_letra_huffman(arvore, palavra[i])){
       strcat(codigo, "?");
     }else{
-    	int tam = altura_letra(arvore, 0, palavra[i]);
-      	strcat(codigo, codifica_letra(arvore, palavra[i]));
+    	int tam = altura_letra_huffman(arvore, 0, palavra[i]);
+      	strcat(codigo, codifica_letra_huffman(arvore, palavra[i]));
     }
   }
-  printf("palavra: %s\n", palavra);
-  printf("palavra encriptada: %s\n", codigo);
+  // printf("palavra: %s\n", palavra);
+  // printf("palavra encriptada: %s\n", codigo);
   return codigo;
 }
 
@@ -240,20 +240,4 @@ char *decripta_palavra(AH *arvore, char *palavra){
 	printf("palavra: %s\n", palavra);
 	printf("palavra decriptada: %s\n", ans);
 	return ans;
-}
-
-int main(){
-	LH *teste = inicializa();
-	char letras[8] = {'b', 'h', 'd', 'c', 'e', 'j', 'k', 'l'};
-  	float frequencias[8] = {0.2, 0.3, 0.4, 0.5, 0.6, 0.4, 0.8, 0.9};
-  	int i;
-  	for(i = 0; i<8; i++){
-		AH* arvore = cria_arvore(letras[i], frequencias[i], NULL, NULL);
-  		teste = insere_lista(arvore, teste);
-  	}
-  	AH* arv = build_huffman(teste);
-  	imprime_arvore(arv);
-  	printf("\n\n");
-    char *codigo = codifica_palavra(arv, "lhlaksdd");
-    char *codigo2 = decripta_palavra(arv, "10010010?000?111111");
 }

@@ -13,7 +13,7 @@ typedef struct lista{
 	struct lista *prox;
 }LH;
 
-LH *inicializa();
+LH *inicializa_huffman();
 LH* cria_lista(AH* arvore);
 AH* cria_arvore(int l, float f, AH* e, AH* d);
 LH* insere_lista(AH* arvore, LH *t);
@@ -26,8 +26,8 @@ AH* busca_elemento(LH* lista, int indice);
 LH* remove_elemento(LH* lista, int pos);
 AH* junta_elementos(LH* lista, AH* dir, AH* esq);
 AH* build_huffman(LH* lista);
-int busca_letra(AH* arv, int letra);
-int altura_letra(AH* arv, int h, int letra);
-char *codifica_letra(AH* arvore, int letra);
-char *codifica_palavra(AH* arvore, char *palavra);
+int busca_letra_huffman(AH* arv, int letra);
+int altura_letra_huffman(AH* arv, int h, int letra);
+char *codifica_letra_huffman(AH* arvore, int letra);
+char *codifica_palavra_huffman(AH* arvore, char *palavra);
 char *decripta_palavra(AH *arvore, char *palavra);
